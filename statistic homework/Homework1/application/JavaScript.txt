@@ -1,0 +1,57 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Draw a Circle, line, point</title>
+</head>
+<body>
+
+    <canvas id="myCanvas" width="400" height="400"></canvas>
+
+    <script>
+        // Ottieni il riferimento al canvas
+        var canvas = document.getElementById("myCanvas");
+        var context = canvas.getContext("2d");
+
+        // Disegna un cerchio
+        context.beginPath();
+        context.arc(100, 100, 50, 0, 2 * Math.PI);
+        context.strokeStyle = "red"; // Colore del contorno
+        context.fillStyle = "lightblue"; // Colore di riempimento
+        context.lineWidth = 2; // Spessore della linea
+        context.stroke(); // Disegna il contorno
+        context.fill(); // Riempimento del cerchio
+
+        // Disegna una linea
+        context.beginPath();
+        context.moveTo(200, 200); // Punto iniziale della linea
+        context.lineTo(300, 300); // Punto finale della linea
+        context.strokeStyle = "red"; // Colore della linea
+        context.lineWidth = 3; // Spessore della linea
+        context.stroke(); // Disegna la linea
+
+        // Disegna un punto
+        context.beginPath();
+        context.arc(150, 250, 5, 0, 2 * Math.PI);
+        context.fillStyle = "green"; // Colore del punto
+        context.fill(); // Riempimento del punto
+
+        // Disegna un triangolo
+        context.beginPath();
+        context.moveTo(50, 300);
+        context.lineTo(30, 350);
+        context.lineTo(70, 350);
+        context.closePath(); // Chiude il percorso per creare un triangolo
+        context.strokeStyle = "orange";
+        context.lineWidth = 2;
+        context.stroke();
+        context.fillStyle = "yellow";
+        context.fill();
+
+
+
+    </script>
+
+</body>
+</html>
