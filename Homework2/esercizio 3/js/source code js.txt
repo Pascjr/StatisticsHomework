@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histogram</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <canvas id="histogram"></canvas>
+
+    <script>
+        // Il tuo codice JavaScript va qui
+        function generateRandomVariates(N, k) {
+            let intervals = Array.from({ length: k }, (_, i) => [i / k, (i + 1) / k]);
+    let counts = Array(k).fill(0);
+
+    for (let i = 0; i < N; i++) {
+        let randomValue = Math.random();
+        for (let j = 0; j < k; j++) {
+            if (randomValue >= intervals[j][0] && randomValue < intervals[j][1]) {
+                counts[j]++;
+                break;
+            }
+        }
+    }
+
+    return counts;
+        }
+
+        const N = 10000; // Numero di variabili casuali
+        const k = 10;    // Numero di intervalli di classe
+        const counts = generateRandomVariates(N, k);
+
+        // Disegna l'istogramma utilizzando Chart.js
+        var ctx = document.getElementById('histogram').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: Array.from({ length: k }, (_, i) => `[${i / k}, ${(i + 1) / k})`),
+                datasets: [{
+                    label: 'Frequenza',
+                    data: counts,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

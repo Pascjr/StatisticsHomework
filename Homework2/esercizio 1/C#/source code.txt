@@ -1,0 +1,179 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
+
+namespace DataAnalysisApp
+{
+    public partial class MainForm : Form
+    {
+        private DataTable data;
+
+        public MainForm()
+        {
+            InitializeComponent();
+        }
+
+        private void LoadDataButton_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "CSV Files (*.csv)|*.csv";
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string filePath = openFileDialog.FileName;
+                data = LoadDataFromCSV(filePath);
+                DisplayResults();
+            }
+        }
+
+        private DataTable LoadDataFromCSV(string filePath)
+        {
+            DataTable dataTable = new DataTable();
+
+            try
+            {
+                using (StreamReader sr = new StreamReader(filePath))
+                {
+                    string[] headers = sr.ReadLine().Split(',');
+                    foreach (string header in headers)
+                    {
+                        dataTable.Columns.Add(header);
+                    }
+
+                    while (!sr.EndOfStream)
+                    {
+                        string[] rows = sr.ReadLine().Split(',');
+                        DataRow dataRow = dataTable.NewRow();
+                        for (int i = 0; i < headers.Length; i++)
+                        {
+                            dataRow[i] = rows[i];
+                        }
+                        dataTable.Rows.Add(dataRow);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading data: " + ex.Message);
+            }
+
+            return dataTable;
+        }
+
+        private void DisplayResults()
+        {
+            // Assuming the first column is Qualitative, second is Quantitative discrete, and third is Quantitative continuous.
+            // You can modify this logic based on your actual data structure.
+
+            // Calculate frequency distributions for individual variables.
+            Dictionary<string, int> qualitativeFrequency = CalculateQualitativeFrequency(data, 0);
+            Dictionary<string, int> discreteFrequency = CalculateDiscreteFrequency(data, 1);
+            Dictionary<string, int> continuousFrequency = CalculateContinuousFrequency(data, 2);
+
+            // Display results in a DataGridView (assuming you have a DataGridView named dataGridViewResults).
+            dataGridViewResults.Rows.Clear();
+            foreach (var item in qualitativeFrequency)
+            {
+                dataGridViewResults.Rows.Add("Qualitative", item.Key, item.Value);
+            }
+
+            foreach (var item in discreteFrequency)
+            {
+                dataGridViewResults.Rows.Add("Quantitative Discrete", item.Key, item.Value);
+            }
+
+            foreach (var item in continuousFrequency)
+            {
+                dataGridViewResults.Rows.Add("Quantitative Continuous", item.Key, item.Value);
+            }
+
+            // Calculate and display joint distribution of two variables.
+            // For example, joint distribution of Qualitative and Quantitative Discrete variables.
+            Dictionary<string, int> jointDistribution = CalculateJointDistribution(data, 0, 1);
+            foreach (var item in jointDistribution)
+            {
+                dataGridViewResults.Rows.Add("Joint Distribution (Qualitative, Discrete)", item.Key, item.Value);
+            }
+        }
+
+        private Dictionary<string, int> CalculateQualitativeFrequency(DataTable data, int columnIndex)
+        {
+            var frequency = new Dictionary<string, int>();
+            foreach (DataRow row in data.Rows)
+            {
+                string value = row[columnIndex].ToString();
+                if (frequency.ContainsKey(value))
+                {
+                    frequency[value]++;
+                }
+                else
+                {
+                    frequency[value] = 1;
+                }
+            }
+            return frequency;
+        }
+
+        private Dictionary<string, int> CalculateDiscreteFrequency(DataTable data, int columnIndex)
+        {
+            var frequency = new Dictionary<string, int>();
+            foreach (DataRow row in data.Rows)
+            {
+                string value = row[columnIndex].ToString();
+                if (int.TryParse(value, out int intValue))
+                {
+                    if (frequency.ContainsKey(value))
+                    {
+                        frequency[value]++;
+                    }
+                    else
+                    {
+                        frequency[value] = 1;
+                    }
+                }
+            }
+            return frequency;
+        }
+
+        private Dictionary<string, int> CalculateContinuousFrequency(DataTable data, int columnIndex)
+        {
+            // Assuming the continuous variable is already in class intervals.
+            // You can implement logic to create class intervals if needed.
+            var frequency = new Dictionary<string, int>();
+            foreach (DataRow row in data.Rows)
+            {
+                string interval = row[columnIndex].ToString();
+                if (frequency.ContainsKey(interval))
+                {
+                    frequency[interval]++;
+                }
+                else
+                {
+                    frequency[interval] = 1;
+                }
+            }
+            return frequency;
+        }
+
+        private Dictionary<string, int> CalculateJointDistribution(DataTable data, int firstColumnIndex, int secondColumnIndex)
+        {
+            var jointDistribution = new Dictionary<string, int>();
+            foreach (DataRow row in data.Rows)
+            {
+                string key = row[firstColumnIndex].ToString() + ", " + row[secondColumnIndex].ToString();
+                if (jointDistribution.ContainsKey(key))
+                {
+                    jointDistribution[key]++;
+                }
+                else
+                {
+                    jointDistribution[key] = 1;
+                }
+            }
+            return jointDistribution;
+        }
+    }
+}

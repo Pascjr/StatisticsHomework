@@ -1,0 +1,90 @@
+using System;
+using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+
+namespace PROVIAMO
+
+{
+    public partial class MainForm : Form
+    {
+        public MainForm()
+        {
+            InitializeComponent();
+        }
+
+        
+
+        private double[] GenerateRandomNumbers(int N)
+        {
+            Random random = new Random();
+            double[] randomNumbers = new double[N];
+
+            for (int i = 0; i < N; i++)
+            {
+                randomNumbers[i] = random.NextDouble();
+            }
+
+            return randomNumbers;
+        }
+
+        private double[] CalculateDistribution(double[] randomNumbers, int K)
+        {
+            double[] distribution = new double[K];
+            double intervalSize = 1.0 / K;
+
+            foreach (var number in randomNumbers)
+            {
+                int index = (int)(number / intervalSize);
+                if (index == K) index = K - 1;
+                distribution[index]++;
+            }
+
+            for (int i = 0; i < K; i++)
+            {
+                distribution[i] /= randomNumbers.Length;
+            }
+
+            return distribution;
+        }
+
+        private void PlotDistributionChart(double[] distribution, int K)
+        {
+            chart1.Series.Clear();
+
+            ChartArea chartArea = new ChartArea();
+            chart1.ChartAreas.Add(chartArea);
+
+            Series series = new Series("Distribution");
+            series.ChartType = SeriesChartType.Column;
+            series.Points.DataBindY(distribution);
+            chart1.Series.Add(series);
+
+            for (int i = 0; i < K; i++)
+            {
+                chart1.Series["Distribution"].Points[i].AxisLabel = $"{i / (double)K:F2}-{(i + 1) / (double)K:F2}";
+            }
+        }
+
+        private void GenerateButton_Click(object sender, EventArgs e)
+        {
+            if (int.TryParse(NTextBox.Text, out int N) && int.TryParse(KTextBox.Text, out int K))
+            {
+                if (N <= 0 || K <= 0)
+                {
+                    MessageBox.Show("N e K devono essere valori positivi.");
+                    return;
+                }
+
+                double[] randomNumbers = GenerateRandomNumbers(N);
+                double[] distribution = CalculateDistribution(randomNumbers, K);
+
+                PlotDistributionChart(distribution, K);
+            }
+            else
+            {
+                MessageBox.Show("Inserisci valori validi per N e K.");
+            }
+        }
+    }
+}
