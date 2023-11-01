@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frequency Distribution Calculator</title>
+</head>
+
+<body>
+    <h1>Frequency Distribution Calculator</h1>
+    <input type="file" id="csvFile" accept=".csv">
+    <div id="results"></div>
+
+    <script>
+		document.getElementById('csvFile').addEventListener('change', handleFileSelect, false);
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+        const contents = e.target.result;
+        const lines = contents.split('\n');
+        const data = [];
+
+        for (const line of lines) {
+            data.push(line.split(','));
+        }
+
+        const qualitativeVariableColumn = 0;
+        const quantitativeDiscreteVariableColumn = 1;
+        const quantitativeContinuousVariableColumn = 2;
+
+        const qualitativeVariableFreq = calculateQualitativeVariableFrequency(data, qualitativeVariableColumn);
+        const quantitativeDiscreteVariableFreq = calculateQuantitativeDiscreteVariableFrequency(data, quantitativeDiscreteVariableColumn);
+        const quantitativeContinuousVariableFreq = calculateQuantitativeContinuousVariableFrequency(data, quantitativeContinuousVariableColumn);
+
+        const jointVariable1Column = 0; // Change these indices based on your CSV structure
+        const jointVariable2Column = 1; // Change these indices based on your CSV structure
+        const jointVariableFreq = calculateJointVariableFrequency(data, jointVariable1Column, jointVariable2Column);
+
+        displayResults(qualitativeVariableFreq, quantitativeDiscreteVariableFreq, quantitativeContinuousVariableFreq, jointVariableFreq);
+    };
+
+    reader.readAsText(file);
+}
+
+function calculateQualitativeVariableFrequency(data, column) {
+    const freqMap = new Map();
+
+    for (const row of data) {
+        const value = row[column].trim();
+        if (freqMap.has(value)) {
+            freqMap.set(value, freqMap.get(value) + 1);
+        } else {
+            freqMap.set(value, 1);
+        }
+    }
+
+    return freqMap;
+}
+
+function calculateQuantitativeDiscreteVariableFrequency(data, column) {
+    const freqMap = new Map();
+
+    for (const row of data) {
+        const value = parseInt(row[column].trim());
+        if (!isNaN(value)) {
+            if (freqMap.has(value)) {
+                freqMap.set(value, freqMap.get(value) + 1);
+            } else {
+                freqMap.set(value, 1);
+            }
+        }
+    }
+
+    return freqMap;
+}
+
+function calculateQuantitativeContinuousVariableFrequency(data, column) {
+    const classIntervals = [0, 10, 20, 30, 40, 50]; // Define your class intervals here
+    const freqMap = new Map();
+
+    for (const row of data) {
+        const value = parseFloat(row[column].trim());
+        if (!isNaN(value)) {
+            for (let i = 0; i < classIntervals.length - 1; i++) {
+                if (value >= classIntervals[i] && value < classIntervals[i + 1]) {
+                    const interval = `${classIntervals[i]}-${classIntervals[i + 1]}`;
+                    if (freqMap.has(interval)) {
+                        freqMap.set(interval, freqMap.get(interval) + 1);
+                    } else {
+                        freqMap.set(interval, 1);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    return freqMap;
+}
+
+function calculateJointVariableFrequency(data, column1, column2) {
+    const freqMap = new Map();
+
+    for (const row of data) {
+        const variable1 = row[column1].trim();
+        const variable2 = row[column2].trim();
+        const jointKey = `${variable1}_${variable2}`;
+
+        if (freqMap.has(jointKey)) {
+            freqMap.set(jointKey, freqMap.get(jointKey) + 1);
+        } else {
+            freqMap.set(jointKey, 1);
+        }
+    }
+
+    return freqMap;
+}
+
+function displayResults(qualitativeFreq, discreteFreq, continuousFreq, jointFreq) {
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = '';
+
+    resultsDiv.innerHTML += '<h2>Qualitative Variable Frequency:</h2>';
+    qualitativeFreq.forEach((count, value) => {
+        resultsDiv.innerHTML += `<p>${value}: ${count}</p>`;
+    });
+
+    resultsDiv.innerHTML += '<h2>Quantitative Discrete Variable Frequency:</h2>';
+    discreteFreq.forEach((count, value) => {
+        resultsDiv.innerHTML += `<p>${value}: ${count}</p>`;
+    });
+
+    resultsDiv.innerHTML += '<h2>Quantitative Continuous Variable Frequency:</h2>';
+    continuousFreq.forEach((count, interval) => {
+        resultsDiv.innerHTML += `<p>${interval}: ${count}</p>`;
+    });
+
+    resultsDiv.innerHTML += '<h2>Joint Variable Frequency:</h2>';
+    jointFreq.forEach((count, variables) => {
+        const [variable1, variable2] = variables.split('_');
+        resultsDiv.innerHTML += `<p>${variable1}, ${variable2}: ${count}</p>`;
+    });
+}
+
+
+
+
+
+
+
+		
+    </script>
+</body>
+
+</html>
