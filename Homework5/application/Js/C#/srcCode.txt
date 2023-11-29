@@ -1,0 +1,224 @@
+using System;
+
+using System.Collections.Generic;
+
+using System.ComponentModel;
+
+using System.Data;
+
+using System.Drawing;
+
+using System.Linq;
+
+using System.Text;
+
+using System.Threading.Tasks;
+
+using System.Windows.Forms;
+
+namespace PALOZZIHW5CS
+
+{
+
+    public partial class Form1 : Form
+
+    {
+
+        public const int numAttacks = 500;
+
+        public const int numSystems = 100;
+
+        public const double penetrationProbability = 20;
+
+        private Rectangle viewRect;
+
+        private int currentAttack = 1;
+
+        private List<List<int>> securityTrajectories;
+
+        private List<int> allTrajectories;
+
+        private double y_max;
+
+        private double y_min;
+
+        private double y_range;
+
+        private Bitmap drawingBitmap;
+
+        private Rectangle selectedRectangle;
+
+        private Point initialMousePosition;
+
+        public Form1()
+
+        {
+
+            InitializeComponent();
+
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+
+        {
+
+            viewRect = new Rectangle(10, 10, 500, 200);
+
+            securityTrajectories = StatisticsCalculator.GenerateSecurityTrajectories();
+
+            allTrajectories = securityTrajectories.SelectMany(trajectory => trajectory).ToList();
+
+            y_max = allTrajectories.Max();
+
+            y_range = y_max;
+
+            y_min = 0;
+
+
+            drawingBitmap = new Bitmap(pictureBox1.Width, pictureBox1.Height);
+
+        }
+
+        private void pictureBox1_Paint(object sender, PaintEventArgs e)
+
+        {
+
+            e.Graphics.DrawImage(drawingBitmap, Point.Empty);
+
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+
+        {
+
+        }
+
+        private void UpdateDraw()
+
+        {
+
+            using (Graphics g = Graphics.FromImage(drawingBitmap))
+
+            {
+
+                g.Clear(Color.White);
+
+                pictureBox1.Invalidate();
+
+
+                viewRect.DrawRectangle(g, Pens.Black);
+
+
+                GraphicCalculator.DrawLabelsO(g, viewRect, (int)y_range);
+
+                GraphicCalculator.DrawScores(g, securityTrajectories, currentAttack, Math.Abs(y_min), y_range, viewRect); ;
+
+                if (currentAttack >= numAttacks / 2)
+
+                {
+
+                    GraphicCalculator.PrintHistogram(securityTrajectories, (int)(numAttacks / 2), viewRect, (int)y_min, (int)y_range, g);
+
+                }
+
+                if (currentAttack >= numAttacks)
+
+                {
+
+                    GraphicCalculator.PrintHistogram(securityTrajectories, (int)(numAttacks), viewRect, (int)y_min, (int)y_range, g);
+
+                }
+
+
+
+            }
+
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+
+        {
+
+            if (currentAttack <= numAttacks)
+
+            {
+
+                UpdateDraw();
+
+                currentAttack++;
+
+                pictureBox1.Invalidate();
+
+            }
+
+            else
+
+            {
+
+                UpdateDraw();
+
+                currentAttack--;
+
+                pictureBox1.Invalidate();
+
+            }
+
+        }
+
+        private void pictureBox1_MouseDown_1(object sender, MouseEventArgs e)
+
+        {
+
+            if (e.Button == MouseButtons.Left)
+
+            {
+
+                if (viewRect.Contains(e.Location.X, e.Location.Y))
+
+                {
+
+                    selectedRectangle = viewRect;
+
+                }
+
+            }
+
+            initialMousePosition = e.Location;
+
+        }
+
+        private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
+
+        {
+
+            if (selectedRectangle != null)
+
+            {
+
+                int deltaX = e.X - initialMousePosition.X;
+
+                int deltaY = e.Y - initialMousePosition.Y;
+
+                selectedRectangle.Width += deltaX;
+
+                selectedRectangle.Height += deltaY;
+
+                pictureBox1.Invalidate();
+
+                initialMousePosition = e.Location;
+
+            }
+
+        }
+
+        private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
+
+        {
+
+            selectedRectangle = null;
+
+        }
+
+    }
+
+}
