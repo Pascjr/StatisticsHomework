@@ -1,0 +1,113 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows.Forms;
+using System.Drawing;
+ 
+namespace SystemDiscardSimulation
+{
+    public partial class MainForm : Form
+    {
+        private const int M = 100; // Number of systems
+        private const int N = 50;  // Number of attacks
+        private const double penetrationProbability = 0.1; // Probability of penetration at each attack
+        private const int maxPenetrationScore = 100; // Maximum penetration score
+        private const int maxSecurityScore = 100; // Maximum security score
+ 
+        private List<int[]> systemScores; // Penetration scores for each system
+ 
+        public MainForm()
+        {
+            InitializeComponent();
+            InitializeSimulation();
+        }
+ 
+        private void InitializeSimulation()
+        {
+            // Initialize data for each system
+            systemScores = new List<int[]>();
+            for (int i = 0; i < M; i++)
+            {
+                int[] systemPenetrationScores = new int[N];
+                systemScores.Add(systemPenetrationScores);
+            }
+ 
+            // Simulate attacks and calculate discard probabilities
+            SimulateAndDrawProbabilities();
+        }
+ 
+        private void SimulateAndDrawProbabilities()
+        {
+            List<double> discardProbabilities = new List<double>();
+ 
+            // Loop over different values of P
+            for (int P = 20; P <= 100; P += 10)
+            {
+                double discardCount = 0;
+ 
+                // Simulate attacks for each system
+                for (int i = 0; i < M; i++)
+                {
+                    int[] systemPenetrationScores = systemScores[i];
+ 
+                    // Simulate attacks and calculate penetration scores
+                    for (int j = 0; j < N; j++)
+                    {
+                        if (systemPenetrationScores[j] < P)
+                        {
+                            // System is penetrated
+                            systemPenetrationScores[j] += (new Random()).NextDouble() < penetrationProbability ? 1 : 0;
+                        }
+                        else
+                        {
+                            // System is discarded if penetration score exceeds P before reaching S
+                            discardCount++;
+                            break;
+                        }
+                    }
+                }
+ 
+                // Calculate and store discard probability for the current value of P
+                double discardProbability = discardCount / M;
+                discardProbabilities.Add(discardProbability);
+            }
+ 
+            // Draw the probabilities
+            DrawProbabilities(discardProbabilities);
+        }
+ 
+        private void DrawProbabilities(List<double> discardProbabilities)
+        {
+            // Create a new resizable rectangle
+            ResizableRectangle resizableRectangle = new ResizableRectangle(panel1);
+ 
+            // Draw the probabilities on the panel
+            Graphics g = panel1.CreateGraphics();
+            int x = 50;
+            int y = 50;
+ 
+            for (int i = 0; i < discardProbabilities.Count; i++)
+            {
+                int barWidth = 20;
+                int barHeight = (int)(discardProbabilities[i] * 300);
+                g.FillRectangle(Brushes.Blue, x, y, barWidth, barHeight);
+                g.DrawString($"P = {20 + i * 10}", Font, Brushes.Black, x - 10, y + barHeight + 5);
+                x += barWidth + 10;
+            }
+        }
+ 
+        private void panel1_Paint(object sender, PaintEventArgs e)
+        {
+            // Redraw the probabilities when the panel is repainted
+            SimulateAndDrawProbabilities();
+        }
+ 
+        private void MainForm_Resize(object sender, EventArgs e)
+        {
+            // Redraw the probabilities when the form is resized
+            SimulateAndDrawProbabilities();
+        }
+ 
+        // Other code for ResizableRectangle class and form initialization
+    }
+}
